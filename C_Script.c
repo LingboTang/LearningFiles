@@ -23,16 +23,10 @@ int main(int argc, char** argv) {
 		exit(1);
 	}
 
-	reti2 = regcomp(&regex2, "[+-]?([0-9]*[.])?[0-9]+", 0);
+	reti2 = regcomp(&regex2, "[+-]?([0-9]*[.])?[0-9]+", REG_EXTENDED);
 	if (reti2) {
-		fprintf(stderr, "Could not compile regex of real literal\n");
+		fprintf(stderr, "Could not compile regex of floating literals\n");
 		exit(1);
-	}
-
-	char * testString = "-87.21";
-	reti2 = regexec(&regex, testString, 0, NULL, 0);
-	if (!reti2) {
-		printf("%s \n", testString);
 	}
 
 	if (argc != 2) {
@@ -51,22 +45,21 @@ int main(int argc, char** argv) {
 	while (!feof(inputf)) {
 		fgets(line, BUFF_SIZE, inputf);
 		reti = regexec(&regex, line, 0, NULL, 0);
-        	if (!reti) {
-			/*reti2 = regexec(&regex2, line, 0, NULL, 0);
-			if (!reti2) {
-				printf("energy is : %s",line);
-			}*/
-                	//energy =
-                	printf("%s",line); 
-        	}
-        	else if (reti == REG_NOMATCH) {
+        if (!reti) {
+                printf("%s",line);
+                reti2 = regexec(&regex2, line, 0, NULL, 0);
+                if (!reti2) {
+                    printf("%s", line);
+                }
+        }
+        else if (reti == REG_NOMATCH) {
 
-        	}
-        	else {
-                	regerror(reti, &regex, line, sizeof(line));
-                	fprintf(stderr, "Regex match failed: %s\n", line);
-                	exit(1);
-        	}
+        }
+        else {
+                regerror(reti, &regex, line, sizeof(line));
+                fprintf(stderr, "Regex match failed: %s\n", line);
+                exit(1);
+        }
 	}
 
 	regfree(&regex);
