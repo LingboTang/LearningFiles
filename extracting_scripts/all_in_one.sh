@@ -1,6 +1,9 @@
 #! /bin/bash
 
 # Grep the energy into an array from output
+
+
+
 readarray GREPPED < <(grep "^energy: [+-]\\{0,1\\}[0-9]\\{0,\\}\\.\\{0,1\\}[0-9]\\{1,\\}" -R /home/lingbo/CPofAaronsData/)
 declare -a arr
 
@@ -9,6 +12,7 @@ for item in "${GREPPED[@]}";
 do
         value=`echo ${item} | cut -d':' -f2-`
         value=`echo $value | cut -d':' -f2-`
+	#echo $value
         arr[$i]=${value}
         ((i = i + 1))
 done
