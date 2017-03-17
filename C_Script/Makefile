@@ -18,4 +18,4 @@ $(MYOBJ): $(MYSRC)
 	
 
 clean:
-	rm -f *.o *~ core
+	rm -f *.o *~ $(EXEC)
