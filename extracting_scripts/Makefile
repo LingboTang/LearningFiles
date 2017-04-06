@@ -5,9 +5,9 @@ CC := gcc
 CCOPTS := -std=c99 -O2 -Wall -g
 
 #object file and source file
-MYSRC := C_Script.c
-MYOBJ := C_Script.o
-EXEC := lingbo_op_getter
+MYSRC := C_extract_min_energy.c
+MYOBJ := C_extract_min_energy.o
+EXEC := op_getter
 
 
 $(EXEC): $(MYOBJ)
