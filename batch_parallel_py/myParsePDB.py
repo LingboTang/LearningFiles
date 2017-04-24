@@ -125,19 +125,19 @@ def main(argv):
 
 	# Pre-processing pass given input and output files
 	try:
-		opts, args = getopt.getopt(argv, "hi:o:a:c:s:m:t:", ["ifile=","ofile","axisstaic=","change=","step=","movestrand=","translation="])
+		opts, args = getopt.getopt(argv, "hi:o:a:c:s:m:t:", ["ifile=","ofile=","axis=","change=","step=","movestrand=","translation="])
 	except getopt.GetoptError:
-		print("myParsePDB.py -i <inputfile> -o <outputfile> -a <axisstatic> -c <change_distance> -s <step> -m <movestrand> -t <translation>")
+		print("myParsePDB.py -i <inputfile> -o <outputfile> -a <axis> -c <change_distance> -s <step> -m <movestrand> -t <translation>")
 		sys.exit(2)
 	for opt, arg in opts:
 		if opt == "-h":
-			print("myParsePDB.py -i <inputfile> -o <outputfile> -a <axisstatic> -c <change_distance> -s <step> -m <movestrand> -t <translation>")
+			print("myParsePDB.py -i <inputfile> -o <outputfile> -a <axis> -c <change_distance> -s <step> -m <movestrand> -t <translation>")
 			sys.exit()
 		elif opt in ("-i", "--ifile"):
 			inputfN = arg
 		elif opt in ("-o", "--ofile"):
 			outputN = arg
-		elif opt in ("-a", "--axisstatic"):
+		elif opt in ("-a", "--axis"):
 			strand_op = int(arg)
 		elif opt in ("-c", "--change"):
 			delta_dis = float(arg)
