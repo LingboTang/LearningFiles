@@ -2,36 +2,38 @@
 
 # Compile the C files
 make clean
-rm -rf /home/lingbo/CPofAaronsData/out/
+rm -rf /home/lingbo/CPofAaronsData/exon_44_output/out/
 make
 
-mkdir /home/lingbo/CPofAaronsData/out/
+mkdir /home/lingbo/CPofAaronsData/exon_44_output/out/
 
 # Find the minimum energy
 # To get only filename="${filename%.*}"
 # You can change your filename and path here
 extension=".txt"
-fullpath="/home/lingbo/CPofAaronsData/"
-for file in /home/lingbo/CPofAaronsData/*;
+fullpath="/home/lingbo/CPofAaronsData/exon_44_output/*"
+for file in $fullpath;
 do
 	myBase=`basename ${file%.*}`
+	echo $myBase
 	if [ "$myBase" = "out" ]; 
         then
 		echo ""
 	# Create the output folder
 	else
 		baseDir=`dirname ${file}`
+		#echo $myBase
 		outFile=$baseDir
 		outFile+="/out/$myBase"
 		outFile+=$extension
 		touch $outFile
 		# Execute the C program to extract energy
-		./lingbo_op_getter ${file} ${outFile}
+		./op_getter ${file} ${outFile}
 	fi
 done
 
 # Grep the energy into an array from output
-readarray GREPPED < <(grep "[+-]\\{0,1\\}[0-9]\\{0,\\}\\.\\{0,1\\}[0-9]\\{1,\\}" -R /home/lingbo/CPofAaronsData/out/)
+readarray GREPPED < <(grep "[+-]\\{0,1\\}[0-9]\\{0,\\}\\.\\{0,1\\}[0-9]\\{1,\\}" -R /home/lingbo/CPofAaronsData/exon_44_output/out/)
 declare -a arr
 
 # Collect the pure value
@@ -60,4 +62,4 @@ echo $min
 
 # Clean up
 make clean
-rm -rf /home/lingbo/CPofAaronsData/out/
+rm -rf /home/lingbo/CPofAaronsData/exon_44_output/out/

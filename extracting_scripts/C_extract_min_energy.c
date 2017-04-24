@@ -11,6 +11,7 @@
  * Global Values
  */
 #define BUFF_SIZE 256
+#define MAX_THREADS 8 
 regex_t regex;
 regex_t regex2;
 int reti;
