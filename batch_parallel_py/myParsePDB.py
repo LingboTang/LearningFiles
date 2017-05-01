@@ -6,6 +6,7 @@ import sys
 import math
 import numpy as np
 import getopt
+import pandas
 
 # ===================================== Util Functions ============================== #
 
@@ -72,6 +73,14 @@ def normalize_vector(vec):
 	vec = (vec[0]/norm, vec[1]/norm, vec[2]/norm)
 	return vec
 
+def changing_numbers(lines):
+	for i in range(len(lines)):
+		if i < 316:
+			continue		
+		elif i >= 316:
+			lines[i][1] = str(int(lines[i%158][1]) + i//158 * 158)
+			lines[i][4] = str(int(lines[i%158][4]) + (i//158) * 10)
+
 
 def flatten_strand(array):
 	flattened = []
@@ -81,11 +90,13 @@ def flatten_strand(array):
 	return flattened
 
 
-def ceiling_to_three_digs(line, new_data):
+def ceil_and_ter(line, new_data, num_strands):
 	for i in range(len(line)):
 		for j in range(3):
 			line[i][j+5] = str(math.ceil(new_data[i][j] * 1000) / 1000.0)
-	line.insert(len(line)//2,["TER"])
+	ter_index = [i * len(line)//num_strands + (i-1) for i in range(1, num_strands)]
+	for i in ter_index:
+		line.insert(i,["TER"])
 	line.append(["TER"])
 	line.append(["END"])
 
@@ -192,6 +203,10 @@ def main(argv):
 			keyPair["Atom_Coord"] = (float(line[5]),float(line[6]),float(line[7]))
 			strand.append(keyPair)
 
+	sheetlines = map(list, outlines * 2)
+	changing_numbers(sheetlines)
+	
+
 	medians =[]
 	for strand in strands:
 		strand_median = (strand[0]["Residue_Num"]+strand[-1]["Residue_Num"] -1)/2
@@ -246,6 +261,9 @@ def main(argv):
 		Coordinates.append(Coordinate)
 
 
+	Concat_Coordinates = map(list, Coordinates)
+
+
 	# Move the second strand by a certain distance
 	#for i in range(len(Coordinates[1])):
 	#	Coordinates[1][i] = tuple(vector_move(Coordinates[1][i], normalized_vector, delta_dis))
@@ -280,12 +298,20 @@ def main(argv):
 			for i in range(len(outCoords[1])):
 				outCoords[1][i] = tuple(vector_move(outCoords[1][i], adjusting_norm_vec, -changed_dis))
 
+	for i in range(len(Concat_Coordinates)):
+		for j in range(len(Concat_Coordinates[i])):
+			Concat_Coordinates[i][j] =  tuple(vector_move(Concat_Coordinates[i][j],central_vector,2))
+
+	outCoords.append(Concat_Coordinates[0])
+	outCoords.append(Concat_Coordinates[1])
+
 
 	# Finish and clean up
 	inputFile.close()
+	out_num = len(outCoords)
 	outCoords = flatten_strand(outCoords)
-	ceiling_to_three_digs(outlines, outCoords)
-	output_files_in_format(outlines,myOF)
+	ceil_and_ter(sheetlines, outCoords, out_num)
+	output_files_in_format(sheetlines,myOF)
 	myOF.close()
 
 	
