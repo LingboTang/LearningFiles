@@ -74,12 +74,9 @@ def normalize_vector(vec):
 	return vec
 
 def changing_numbers(lines):
-	for i in range(len(lines)):
-		if i < 316:
-			continue		
-		elif i >= 316:
-			lines[i][1] = str(int(lines[i%158][1]) + i//158 * 158)
-			lines[i][4] = str(int(lines[i%158][4]) + (i//158) * 10)
+	for i in range(316,len(lines)):
+		lines[i][1] = str(int(lines[i%158][1]) + i//158 * 158)
+		lines[i][4] = str(int(lines[i%158][4]) + i//158 * 10)
 
 
 def flatten_strand(array):
@@ -203,7 +200,7 @@ def main(argv):
 			keyPair["Atom_Coord"] = (float(line[5]),float(line[6]),float(line[7]))
 			strand.append(keyPair)
 
-	sheetlines = map(list, outlines * 2)
+	sheetlines = map(list, outlines * 4)
 	changing_numbers(sheetlines)
 	
 
@@ -261,7 +258,7 @@ def main(argv):
 		Coordinates.append(Coordinate)
 
 
-	Concat_Coordinates = map(list, Coordinates)
+	Concat_Coordinates = map(list, Coordinates * 3)
 
 
 	# Move the second strand by a certain distance
@@ -300,10 +297,10 @@ def main(argv):
 
 	for i in range(len(Concat_Coordinates)):
 		for j in range(len(Concat_Coordinates[i])):
-			Concat_Coordinates[i][j] =  tuple(vector_move(Concat_Coordinates[i][j],central_vector,2))
+			Concat_Coordinates[i][j] =  tuple(vector_move(Concat_Coordinates[i][j],central_vector, 3 * (i // 2 + 1) ))
 
-	outCoords.append(Concat_Coordinates[0])
-	outCoords.append(Concat_Coordinates[1])
+	for i in range(len(Concat_Coordinates)):
+		outCoords.append(Concat_Coordinates[i])
 
 
 	# Finish and clean up
