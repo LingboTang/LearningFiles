@@ -96,8 +96,16 @@ PDB Processing Files
     * `ceiling_to_three_digs(line, new_data)`: Finalize all data lines, and ceiling the coordinates to 3 decimal places
     
     * `output_files_in_format(outlines,outfile)`: Align and adjust data lines returned from `ceiling_to_three_digs(line, new_data)` in *.pdb format.
-    
-    
+ 
+
+My Advice to the future optimization
+------------------------------------
+
+1. Since `*.pdb` files can be represented as data frames with same format in each line except for the terminal line and end line, if you have time, you can just re-write another version using Bio.PDB module + pandas for simpler and convenient data manipulation, for exmample, you can append new strands as entire objects rather than append new strands line by line. I thought I can hash the table with super keys and increment the hash, but it just adds more complexity to the problem. `pd.append(dataFrame)` will do the job for you.
+
+2. Re-write all list-like, tuple-like structures in numpy array or pandas data frame, they are simply faster than my implementation. The reason why I want to keep coordinates in tuple form is that I want to protect the value from unexpected changing before I want to change it. (It happens once, but I can't reproduce the error now)
+
+3. If you have multi-processing program experience, I'm thinking dynamically throwing files and commands in thread pool (in `parallel_exec.py`) could do the job if huge amount of data is needed during I/O. Bash is fast, but it's not convenient to manipulate numerical arrays. 
     
     
     

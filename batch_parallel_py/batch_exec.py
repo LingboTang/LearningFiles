@@ -20,13 +20,13 @@ def main(argv):
 	chosen_path = ""
 
 	try:
-		opts, args = getopt.getopt(argv, "hs:t:r:m:a:",["angleStep=", "transStep=","rotatable=","movable=","strand="])
+		opts, args = getopt.getopt(argv, "hs:t:r:m:a:f:",["angleStep=", "transStep=","rotatable=","movable=","strand=", "fold="])
 	except getopt.GetoptError:
-		print("batch_exec.py -s <angle_step> -t <translation_step> -r <rotatable> -m <movable> -a <strand>")
+		print("batch_exec.py -s <angle_step> -t <translation_step> -r <rotatable> -m <movable> -a <strand> -f <fold>")
 		sys.exit(1)
 	for opt, arg in opts:
 		if opt == "-h":
-			print("batch_exec.py -s <angle_step> -t <translation_step> -r <rotatable> -m <movable> -a <strand>")
+			print("batch_exec.py -s <angle_step> -t <translation_step> -r <rotatable> -m <movable> -a <strand> -f <fold>")
 			sys.exit()
 		elif opt in ("-s", "--angleStep"):
 			step = int(arg)
@@ -38,6 +38,8 @@ def main(argv):
 			movable = int(arg)
 		elif opt in ("-a", "--strand"):
 			strand = int(arg)
+		elif opt in ("-f", "--fold"):
+			fold = int(arg)
 
 
 	try:
@@ -55,13 +57,13 @@ def main(argv):
 				print("Invalid Option, setting to default!")
 				chosen_path = os.getcwd() + "/out_strand_rotate_2/"
 			root = chosen_path
-			for i in range(0,10, step):
+			for i in range(0, 10, step):
 				if strand >= 2:
 					chosen_path = root + "BP1_OUT_Rotate_Angle_%d_both.pdb"%i
-					os.system("python myParsePDB.py -i BP1.pdb -o %s -a 2 -s %s -m 2 -t 0" % (chosen_path,i))
+					os.system("python2 -OO myParsePDB.py -i BP1.pdb -o %s -a 2 -s %s -m 2 -t 0 -f %s" % (chosen_path,i,fold))
 				elif strand in (0,1):
 					chosen_path = root + "BP1_OUT_Rotate_Angle_%d_strand_%d.pdb"%(i,strand)
-					os.system("python myParsePDB.py -i BP1.pdb -o %s -a %d -s %s -m 2 -t 0" % (chosen_path,strand,i))
+					os.system("python2 -OO myParsePDB.py -i BP1.pdb -o %s -a %d -s %s -m 2 -t 0 -f %s" % (chosen_path,strand,i,fold))
 		elif rotatable == 0 and movable == 1:
 			if strand == 0:
 				chosen_path = os.getcwd() + "/out_strand_move_0/"
@@ -73,7 +75,7 @@ def main(argv):
 			root = chosen_path
 			for i in frange(0, 5,trans):
 				chosen_path = root + "BP1_OUT_Move_Trans_%s_strand_%d.pdb"%(str(i),strand)
-				os.system("python myParsePDB.py -i BP1.pdb -o %s -a 3 -s 2 -m %d -t %s" % (chosen_path,strand,i))
+				os.system("python2 -OO myParsePDB.py -i BP1.pdb -o %s -a 3 -s 2 -m %d -t %s -f %s" % (chosen_path,strand,i,fold))
 		print("Completed!")
 	except KeyboardInterrupt:
 		print("Here is the KeyboardInterrupt Ctrl + C\n")

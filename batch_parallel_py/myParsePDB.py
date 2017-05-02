@@ -10,6 +10,7 @@ import pandas
 
 # ===================================== Util Functions ============================== #
 
+# This function gives you the ability to rotate with arbitrary axis and theta
 def rotation_matrix(axis, theta):
     """
     Return the rotation matrix associated with counterclockwise rotation about
@@ -25,15 +26,15 @@ def rotation_matrix(axis, theta):
                      [2*(bc-ad), aa+cc-bb-dd, 2*(cd+ab)],
                      [2*(bd+ac), 2*(cd-ab), aa+dd-bb-cc]])
 
-
+# Legacy: Not as efficient as np.linalg.norm You can delete it if you want
 def calc_euclidean_distance(p1, p2):
 	return math.sqrt((p2.x - p1.x) **2 + (p2.y - p1.y) **2 + (p2.z - p1.z) **2)
 
-
+# Transfer degrees to radians
 def toRadians(degrees):
 	return degrees * math.pi / 180
 
-
+# Move vector along direction vector with distance 
 def vector_move(point, dire, dis):
 	base_point = np.array(point)
 	base_dir = np.array(dire)
@@ -68,17 +69,19 @@ def rotating_around_strand_axis(strand_op, static_axis, theta, out_coords, in_co
 		out_coords = in_coords
 	return out_coords
 
+# Normalize the vector
 def normalize_vector(vec):
 	norm = math.sqrt(vec[0] ** 2 + vec[1] ** 2 + vec[2] ** 2)
 	vec = (vec[0]/norm, vec[1]/norm, vec[2]/norm)
 	return vec
 
-def changing_numbers(lines):
+# Incrementing the numbers in pdb files by size
+def incrementing_numbers(lines):
 	for i in range(316,len(lines)):
 		lines[i][1] = str(int(lines[i%158][1]) + i//158 * 158)
 		lines[i][4] = str(int(lines[i%158][4]) + i//158 * 10)
 
-
+# Flatten strand array for final output
 def flatten_strand(array):
 	flattened = []
 	for strand in array:
@@ -86,7 +89,8 @@ def flatten_strand(array):
 			flattened.append(item)
 	return flattened
 
-
+# ceil the coordinates to 3 decimal places and ter each strand
+# as final output format 
 def ceil_and_ter(line, new_data, num_strands):
 	for i in range(len(line)):
 		for j in range(3):
@@ -97,7 +101,8 @@ def ceil_and_ter(line, new_data, num_strands):
 	line.append(["TER"])
 	line.append(["END"])
 
-
+# Adjust and align string in places as pdb format
+# Otherwise the other software can't parse the pdb file!
 def output_files_in_format(outlines,outfile):
 	for outline in outlines:
 		if len(outline) > 1:
@@ -126,6 +131,7 @@ def main(argv):
 	inputfN = ""
 	rotating_theta = 0.0
 	translation = 0
+	fold = 1
 	strand_axis = []
 	moving_axis = []
 
@@ -133,13 +139,13 @@ def main(argv):
 
 	# Pre-processing pass given input and output files
 	try:
-		opts, args = getopt.getopt(argv, "hi:o:a:c:s:m:t:", ["ifile=","ofile=","axis=","change=","step=","movestrand=","translation="])
+		opts, args = getopt.getopt(argv, "hi:o:a:c:s:m:t:f:", ["ifile=","ofile=","axis=","change=","step=","movestrand=","translation=","fold="])
 	except getopt.GetoptError:
-		print("myParsePDB.py -i <inputfile> -o <outputfile> -a <axis> -c <change_distance> -s <step> -m <movestrand> -t <translation>")
+		print("myParsePDB.py -i <inputfile> -o <outputfile> -a <axis> -c <change_distance> -s <step> -m <movestrand> -t <translation> -f <fold>")
 		sys.exit(2)
 	for opt, arg in opts:
 		if opt == "-h":
-			print("myParsePDB.py -i <inputfile> -o <outputfile> -a <axis> -c <change_distance> -s <step> -m <movestrand> -t <translation>")
+			print("myParsePDB.py -i <inputfile> -o <outputfile> -a <axis> -c <change_distance> -s <step> -m <movestrand> -t <translation> -f <fold>")
 			sys.exit()
 		elif opt in ("-i", "--ifile"):
 			inputfN = arg
@@ -156,6 +162,8 @@ def main(argv):
 			movestrand = int(arg)
 		elif opt in ("-t", "--translation"):
 			translation = float(arg)
+		elif opt in ("-f", "--fold"):
+			fold = int(arg)
 	
 
 	# Open the input and output files, if they are not exist or due to access reason
@@ -200,8 +208,17 @@ def main(argv):
 			keyPair["Atom_Coord"] = (float(line[5]),float(line[6]),float(line[7]))
 			strand.append(keyPair)
 
-	sheetlines = map(list, outlines * 4)
-	changing_numbers(sheetlines)
+
+	# For adding more strands from the original input,
+	# the simplest way to do is to copy all the original input
+	# and then increment the indexing values
+	# but be careful! Use the map() function!
+	# If you do outlines*fold because you think it's the simplest way
+	# in python, then python will copy the same reference(address) in 
+	# incremented space. Then if you want to increment the number in the
+	# following strand, the function will increment the original one as well. 
+	sheetlines = map(list, outlines * fold)
+	incrementing_numbers(sheetlines)
 	
 
 	medians =[]
@@ -258,8 +275,11 @@ def main(argv):
 		Coordinates.append(Coordinate)
 
 
-	Concat_Coordinates = map(list, Coordinates * 3)
+	Concat_Coordinates = map(list, Coordinates * fold)
 
+	for i in range(len(Concat_Coordinates)):
+		for j in range(len(Concat_Coordinates[i])):
+			Concat_Coordinates[i][j] =  tuple(vector_move(Concat_Coordinates[i][j],central_vector, 3 * (i // 2) ))
 
 	# Move the second strand by a certain distance
 	#for i in range(len(Coordinates[1])):
@@ -270,44 +290,38 @@ def main(argv):
 	mid_rotation_axis = np.array(end_mid) - np.array(start_mid)
 	mid_rotation_axis = normalize_vector(mid_rotation_axis)
 
-	outCoords = []
-	#outCoords = Coordinates
-	outCoords = rotating_around_strand_axis(strand_op, mid_rotation_axis, rotating_theta, outCoords, Coordinates)
+	all_mid_rotation_axis = map(list, [mid_rotation_axis] * fold)
+
+	# tmp comment: Concat_Coordinates[0:2] is the legacy outCoords
+	Concat_Coordinates[0:2] = rotating_around_strand_axis(strand_op, all_mid_rotation_axis[0], rotating_theta, Concat_Coordinates, Coordinates)
 	if movestrand not in (0,1):
 		pass
 	else:
-		for i in range(len(outCoords[movestrand])):
-			outCoords[movestrand][i] = tuple(vector_move(outCoords[movestrand][i],strand_axis[movestrand], translation))
+		for i in range(len(Concat_Coordinates[movestrand])):
+			Concat_Coordinates[movestrand][i] = tuple(vector_move(Concat_Coordinates[movestrand][i],strand_axis[movestrand], translation))
 
 
 	# Final Adjustment for rotations
 	if movestrand not in(0,1):
-		adjusting_center_0 = outCoords[0][stored_indexs[0]]
-		adjusting_center_1 = outCoords[1][stored_indexs[1]]
+		adjusting_center_0 = Concat_Coordinates[0][stored_indexs[0]]
+		adjusting_center_1 = Concat_Coordinates[1][stored_indexs[1]]
 		adjusting_vec = tuple(np.array(adjusting_center_0)-np.array(adjusting_center_1))
 		adjusting_norm_vec = normalize_vector(adjusting_vec)
 		end_dis = np.linalg.norm(np.array(adjusting_center_0) - np.array(adjusting_center_1))
 		changed_dis = origin_dis-end_dis
 		if (strand_op == 0):
-			for i in range(len(outCoords[0])):
-				outCoords[0][i] = tuple(vector_move(outCoords[0][i], adjusting_norm_vec, changed_dis))
+			for i in range(len(Concat_Coordinates[0])):
+				Concat_Coordinates[0][i] = tuple(vector_move(Concat_Coordinates[0][i], adjusting_norm_vec, changed_dis))
 		else:
-			for i in range(len(outCoords[1])):
-				outCoords[1][i] = tuple(vector_move(outCoords[1][i], adjusting_norm_vec, -changed_dis))
-
-	for i in range(len(Concat_Coordinates)):
-		for j in range(len(Concat_Coordinates[i])):
-			Concat_Coordinates[i][j] =  tuple(vector_move(Concat_Coordinates[i][j],central_vector, 3 * (i // 2 + 1) ))
-
-	for i in range(len(Concat_Coordinates)):
-		outCoords.append(Concat_Coordinates[i])
+			for i in range(len(Concat_Coordinates[1])):
+				Concat_Coordinates[1][i] = tuple(vector_move(Concat_Coordinates[1][i], adjusting_norm_vec, -changed_dis))
 
 
 	# Finish and clean up
 	inputFile.close()
-	out_num = len(outCoords)
-	outCoords = flatten_strand(outCoords)
-	ceil_and_ter(sheetlines, outCoords, out_num)
+	out_num = len(Concat_Coordinates)
+	Concat_Coordinates = flatten_strand(Concat_Coordinates)
+	ceil_and_ter(sheetlines, Concat_Coordinates, out_num)
 	output_files_in_format(sheetlines,myOF)
 	myOF.close()
 
