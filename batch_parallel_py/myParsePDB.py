@@ -43,30 +43,16 @@ def vector_move(point, dire, dis):
 
 
 # Set one of the strand static, and rotate the other strand
-def rotating_around_strand_axis(strand_op, static_axis, theta, out_coords, in_coords):
-	if strand_op == 0:
-		new_strand = []
-		for coordinate in in_coords[strand_op]:
-			new_strand.append(tuple(np.dot(rotation_matrix(static_axis,theta),coordinate)))
-		out_coords.append(new_strand)
-		out_coords.append(in_coords[1])
-	elif strand_op == 1:
-		new_strand = []
-		out_coords.append(in_coords[0])
-		for coordinate in in_coords[strand_op]:
-			new_strand.append(tuple(np.dot(rotation_matrix(static_axis,theta),coordinate)))
-		out_coords.append(new_strand)
-	elif strand_op == 2:
-		new_strand = []
-		for point in in_coords[0]:
-			new_strand.append(tuple(np.dot(rotation_matrix(static_axis,theta),point)))
-		out_coords.append(new_strand)
-		new_strand = []
-		for point in in_coords[1]:
-			new_strand.append(tuple(np.dot(rotation_matrix(static_axis, -theta),point)))
-		out_coords.append(new_strand)
+def rotating_around_strand_axis(strand_op, static_axis, theta, out_coords):
+	if strand_op in range(len(out_coords)):
+		for i in range(len(out_coords[strand_op])):
+			out_coords[strand_op][i] = tuple(np.dot(rotation_matrix(static_axis,theta),out_coords[strand_op][i]))
+	elif strand_op == len(out_coords):
+		for i in range(len(out_coords)):
+			for j in range(len(out_coords[i])):
+				out_coords[i][j] = tuple(np.dot(rotation_matrix(static_axis,theta),out_coords[i][j]))
 	else:
-		out_coords = in_coords
+		pass
 	return out_coords
 
 # Normalize the vector
@@ -240,7 +226,6 @@ def main(argv):
 	end_point_1 = main_edges[1][0]
 	strand_axis = [tuple(np.array(end_point_0) - np.array(start_point_0)),tuple(np.array(end_point_1)-np.array(start_point_1))]
 
-
 	# Because our axis is not accurately initialized, we also need to store the Central Index
 	# for the final adjustment (When you rotate, your central vector changed)
 	filtered_strands = []
@@ -257,7 +242,7 @@ def main(argv):
 						filtered_strands[0][0][2] - filtered_strands[1][0][2])
 
 	central_norm = math.sqrt(central_vector[0] ** 2 + central_vector[1] ** 2 + central_vector[2] ** 2)
-	normalized_vector = (central_vector[0]/central_norm,
+	normalized_central_vector = (central_vector[0]/central_norm,
 						central_vector[1]/central_norm,
 						central_vector[2]/central_norm)
 
@@ -279,42 +264,55 @@ def main(argv):
 
 	for i in range(len(Concat_Coordinates)):
 		for j in range(len(Concat_Coordinates[i])):
-			Concat_Coordinates[i][j] =  tuple(vector_move(Concat_Coordinates[i][j],central_vector, 3 * (i // 2) ))
+			Concat_Coordinates[i][j] =  tuple(vector_move(Concat_Coordinates[i][j],normalized_central_vector, 3 * (i // 2) ))
+
 
 	# Move the second strand by a certain distance
 	#for i in range(len(Coordinates[1])):
-	#	Coordinates[1][i] = tuple(vector_move(Coordinates[1][i], normalized_vector, delta_dis))
+	#	Coordinates[1][i] = tuple(vector_move(Coordinates[1][i], normalized_central_vector, delta_dis))
 
 	start_mid = tuple((np.array(start_point_0) + np.array(start_point_1))/2)
 	end_mid = tuple((np.array(end_point_0) + np.array(end_point_1))/2)
 	mid_rotation_axis = np.array(end_mid) - np.array(start_mid)
 	mid_rotation_axis = normalize_vector(mid_rotation_axis)
 
-	all_mid_rotation_axis = map(list, [mid_rotation_axis] * fold)
+	all_strand_axis = map(list, strand_axis * fold)
+	for i in range(len(all_strand_axis)):
+		all_strand_axis[i] =  tuple(vector_move(all_strand_axis[i], normalized_central_vector, 3 * (i // 2) ))
 
-	# tmp comment: Concat_Coordinates[0:2] is the legacy outCoords
-	Concat_Coordinates[0:2] = rotating_around_strand_axis(strand_op, all_mid_rotation_axis[0], rotating_theta, Concat_Coordinates, Coordinates)
-	if movestrand not in (0,1):
+	all_mid_rotation_axis = map(list, [mid_rotation_axis] * fold)
+	for i in range(len(all_mid_rotation_axis)):
+		all_mid_rotation_axis[i] = tuple(vector_move(all_mid_rotation_axis[i],normalized_central_vector, 3 * i ))
+
+	# Start here
+	Concat_Coordinates = rotating_around_strand_axis(strand_op, all_mid_rotation_axis[strand_op//2], rotating_theta, Concat_Coordinates)
+	if movestrand not in range(fold * 2):
 		pass
 	else:
 		for i in range(len(Concat_Coordinates[movestrand])):
-			Concat_Coordinates[movestrand][i] = tuple(vector_move(Concat_Coordinates[movestrand][i],strand_axis[movestrand], translation))
+			Concat_Coordinates[movestrand][i] = tuple(vector_move(Concat_Coordinates[movestrand][i],all_strand_axis[movestrand], translation))
 
-
+	central_index = stored_indexs[0]
 	# Final Adjustment for rotations
-	if movestrand not in(0,1):
-		adjusting_center_0 = Concat_Coordinates[0][stored_indexs[0]]
-		adjusting_center_1 = Concat_Coordinates[1][stored_indexs[1]]
+	if movestrand not in range(fold * 2):
+		if strand_op %2 == 0:
+			strand_op_0 = strand_op
+			strand_op_1 = strand_op + 1
+		else:
+			strand_op_0 = strand_op -1
+			strand_op_1 = strand_op
+		adjusting_center_0 = Concat_Coordinates[strand_op_0][central_index]
+		adjusting_center_1 = Concat_Coordinates[strand_op_1][central_index]
 		adjusting_vec = tuple(np.array(adjusting_center_0)-np.array(adjusting_center_1))
 		adjusting_norm_vec = normalize_vector(adjusting_vec)
 		end_dis = np.linalg.norm(np.array(adjusting_center_0) - np.array(adjusting_center_1))
 		changed_dis = origin_dis-end_dis
-		if (strand_op == 0):
-			for i in range(len(Concat_Coordinates[0])):
-				Concat_Coordinates[0][i] = tuple(vector_move(Concat_Coordinates[0][i], adjusting_norm_vec, changed_dis))
+		if strand_op % 2 == 0:
+			for i in range(len(Concat_Coordinates[strand_op])):
+				Concat_Coordinates[strand_op][i] = tuple(vector_move(Concat_Coordinates[strand_op][i], adjusting_norm_vec, changed_dis))
 		else:
-			for i in range(len(Concat_Coordinates[1])):
-				Concat_Coordinates[1][i] = tuple(vector_move(Concat_Coordinates[1][i], adjusting_norm_vec, -changed_dis))
+			for i in range(len(Concat_Coordinates[strand_op])):
+				Concat_Coordinates[strand_op][i] = tuple(vector_move(Concat_Coordinates[strand_op][i], adjusting_norm_vec, -changed_dis))
 
 
 	# Finish and clean up
