@@ -2,10 +2,7 @@ from multiprocessing.dummy import Pool as ThreadPool
 import os
 import time 
 
-sub_paths = ("/out_strand_rotate_0_move_0/","/out_strand_rotate_1_move_0/",\
-			"/out_strand_rotate_0_move_1/","/out_strand_rotate_1_move_1/",\
-			"/out_strand_rotate_0/","/out_strand_rotate_1/","/out_strand_rotate_2/",\
-			"/out_strand_move_0/", "/out_strand_move_1/")
+sub_paths = ("/out_move/", "/out_rotate/")
 
 outpaths = [os.getcwd() + sub_path for sub_path in sub_paths]
 for out_path in outpaths:

@@ -46,11 +46,11 @@ def vector_move(point, dire, dis):
 def rotating_around_strand_axis(strand_op, static_axis, theta, out_coords):
 	if strand_op in range(len(out_coords)):
 		for i in range(len(out_coords[strand_op])):
-			out_coords[strand_op][i] = tuple(np.dot(rotation_matrix(static_axis,theta),out_coords[strand_op][i]))
+			out_coords[strand_op][i] = tuple(np.dot(rotation_matrix(static_axis[strand_op//2],theta),out_coords[strand_op][i]))
 	elif strand_op == len(out_coords):
 		for i in range(len(out_coords)):
 			for j in range(len(out_coords[i])):
-				out_coords[i][j] = tuple(np.dot(rotation_matrix(static_axis,theta),out_coords[i][j]))
+				out_coords[i][j] = tuple(np.dot(rotation_matrix(static_axis[i//2],theta),out_coords[i][j]))
 	else:
 		pass
 	return out_coords
@@ -285,7 +285,7 @@ def main(argv):
 		all_mid_rotation_axis[i] = tuple(vector_move(all_mid_rotation_axis[i],normalized_central_vector, 3 * i ))
 
 	# Start here
-	Concat_Coordinates = rotating_around_strand_axis(strand_op, all_mid_rotation_axis[strand_op//2], rotating_theta, Concat_Coordinates)
+	Concat_Coordinates = rotating_around_strand_axis(strand_op, all_mid_rotation_axis, rotating_theta, Concat_Coordinates)
 	if movestrand not in range(fold * 2):
 		pass
 	else:

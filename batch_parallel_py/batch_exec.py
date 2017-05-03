@@ -47,35 +47,29 @@ def main(argv):
 			print("You must make either strand rotatable or movable!")
 			sys.exit(2)
 		elif rotatable == 1 and movable == 0:
-			if strand == 0:
-				chosen_path = os.getcwd() + "/out_strand_rotate_0/"
-			elif strand == 1:
-				chosen_path = os.getcwd() + "/out_strand_rotate_1/"
-			elif strand == 2:
-				chosen_path = os.getcwd() + "/out_strand_rotate_2/"
+			if strand in range(fold*2 + 1):
+				chosen_path = os.getcwd() + "/out_rotate/"
 			else:
 				print("Invalid Option, setting to default!")
-				chosen_path = os.getcwd() + "/out_strand_rotate_2/"
+				sys.exit(3)
 			root = chosen_path
 			for i in range(0, 30, step):
-				if strand >= 2:
-					chosen_path = root + "BP1_OUT_Rotate_Angle_%d_both.pdb"%i
-					os.system("python2 -OO myParsePDB.py -i BP1.pdb -o %s -a 2 -s %s -m 8 -t 0 -f %s" % (chosen_path,i,fold))
-				elif strand in (0,1):
+				if strand >= 8:
+					chosen_path = root + "BP1_OUT_Rotate_Angle_%d_all.pdb"%i
+					os.system("python2 -OO myParsePDB.py -i BP1.pdb -o %s -a 8 -s %s -m 8 -t 0 -f %s" % (chosen_path,i,fold))
+				elif strand in range(fold * 2):
 					chosen_path = root + "BP1_OUT_Rotate_Angle_%d_strand_%d.pdb"%(i,strand)
 					os.system("python2 -OO myParsePDB.py -i BP1.pdb -o %s -a %d -s %s -m 8 -t 0 -f %s" % (chosen_path,strand,i,fold))
 		elif rotatable == 0 and movable == 1:
-			if strand == 0:
-				chosen_path = os.getcwd() + "/out_strand_move_0/"
-			elif strand == 1:
-				chosen_path = os.getcwd() + "/out_strand_move_1/"
+			if strand in range(fold * 2):
+				chosen_path = os.getcwd() + "/out_move/"
 			else:
 				print("Move should be controlled for one axis, setting to default!")
-				chosen_path = os.getcwd() + "/out_strand_move_0/"
+				sys.exit(4)
 			root = chosen_path
-			for i in frange(0, 5,trans):
+			for i in frange(0, 5, trans):
 				chosen_path = root + "BP1_OUT_Move_Trans_%s_strand_%d.pdb"%(str(i),strand)
-				os.system("python2 -OO myParsePDB.py -i BP1.pdb -o %s -a 3 -s 2 -m %d -t %s -f %s" % (chosen_path,strand,i,fold))
+				os.system("python2 -OO myParsePDB.py -i BP1.pdb -o %s -a 9 -s 2 -m %d -t %s -f %s" % (chosen_path,strand,i,fold))
 		print("Completed!")
 	except KeyboardInterrupt:
 		print("Here is the KeyboardInterrupt Ctrl + C\n")
