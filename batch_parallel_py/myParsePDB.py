@@ -125,13 +125,13 @@ def main(argv):
 
 	# Pre-processing pass given input and output files
 	try:
-		opts, args = getopt.getopt(argv, "hi:o:a:c:s:m:t:f:", ["ifile=","ofile=","axis=","change=","step=","movestrand=","translation=","fold="])
+		opts, args = getopt.getopt(argv, "hi:o:a:c:s:m:t:f:d:", ["ifile=","ofile=","axis=","change=","step=","movestrand=","translation=","fold=","inidis="])
 	except getopt.GetoptError:
-		print("myParsePDB.py -i <inputfile> -o <outputfile> -a <axis> -c <change_distance> -s <step> -m <movestrand> -t <translation> -f <fold>")
+		print("myParsePDB.py -i <inputfile> -o <outputfile> -a <axis> -c <change_distance> -s <step> -m <movestrand> -t <translation> -f <fold> -d <inidis>")
 		sys.exit(2)
 	for opt, arg in opts:
 		if opt == "-h":
-			print("myParsePDB.py -i <inputfile> -o <outputfile> -a <axis> -c <change_distance> -s <step> -m <movestrand> -t <translation> -f <fold>")
+			print("myParsePDB.py -i <inputfile> -o <outputfile> -a <axis> -c <change_distance> -s <step> -m <movestrand> -t <translation> -f <fold> -d <inidis>")
 			sys.exit()
 		elif opt in ("-i", "--ifile"):
 			inputfN = arg
@@ -150,6 +150,8 @@ def main(argv):
 			translation = float(arg)
 		elif opt in ("-f", "--fold"):
 			fold = int(arg)
+		elif opt in ("-d", "-inidis"):
+			inidis = float(arg)
 	
 
 	# Open the input and output files, if they are not exist or due to access reason
@@ -224,7 +226,7 @@ def main(argv):
 	end_point_0 = main_edges[0][1]
 	start_point_1 = main_edges[1][1]
 	end_point_1 = main_edges[1][0]
-	strand_axis = [tuple(np.array(end_point_0) - np.array(start_point_0)),tuple(np.array(end_point_1)-np.array(start_point_1))]
+	strand_axis = [tuple(np.array(end_point_0) - np.array(start_point_0)), tuple(np.array(end_point_1)-np.array(start_point_1))]
 
 	# Because our axis is not accurately initialized, we also need to store the Central Index
 	# for the final adjustment (When you rotate, your central vector changed)
@@ -264,7 +266,7 @@ def main(argv):
 
 	for i in range(len(Concat_Coordinates)):
 		for j in range(len(Concat_Coordinates[i])):
-			Concat_Coordinates[i][j] =  tuple(vector_move(Concat_Coordinates[i][j],normalized_central_vector, 3 * (i // 2) ))
+			Concat_Coordinates[i][j] =  tuple(vector_move(Concat_Coordinates[i][j], normalized_central_vector, inidis * (i // 2) ))
 
 
 	# Move the second strand by a certain distance
@@ -278,11 +280,11 @@ def main(argv):
 
 	all_strand_axis = map(list, strand_axis * fold)
 	for i in range(len(all_strand_axis)):
-		all_strand_axis[i] =  tuple(vector_move(all_strand_axis[i], normalized_central_vector, 3 * (i // 2) ))
+		all_strand_axis[i] =  tuple(vector_move(all_strand_axis[i], normalized_central_vector, inidis * (i // 2) ))
 
 	all_mid_rotation_axis = map(list, [mid_rotation_axis] * fold)
 	for i in range(len(all_mid_rotation_axis)):
-		all_mid_rotation_axis[i] = tuple(vector_move(all_mid_rotation_axis[i],normalized_central_vector, 3 * i ))
+		all_mid_rotation_axis[i] = tuple(vector_move(all_mid_rotation_axis[i], normalized_central_vector, inidis * i ))
 
 	# Start here
 	Concat_Coordinates = rotating_around_strand_axis(strand_op, all_mid_rotation_axis, rotating_theta, Concat_Coordinates)
@@ -290,7 +292,7 @@ def main(argv):
 		pass
 	else:
 		for i in range(len(Concat_Coordinates[movestrand])):
-			Concat_Coordinates[movestrand][i] = tuple(vector_move(Concat_Coordinates[movestrand][i],all_strand_axis[movestrand], translation))
+			Concat_Coordinates[movestrand][i] = tuple(vector_move(Concat_Coordinates[movestrand][i], all_strand_axis[movestrand], translation))
 
 	central_index = stored_indexs[0]
 	# Final Adjustment for rotations

@@ -9,7 +9,7 @@ PDB Processing Files
    
    * Each command line will be executed in different thread, they share one input reading file, but they will write output files in different directory, so multi-threading in this file is thread safe. If you want to change the number of threads that you are using in this file. Go to the line which contains `pool =  ThreadPool(num_of_thread)` to change thee value of `num_of_thread`. Dynamic threading is a different story, but this simple static threading is enough to boost up the performance.
    
-   * The output directory will be in the format of "out_strand_rotate_<strand_number>_move_<strand_number>/"
+   * The output directory will be in the format of `/out_move/` or `/out_rotate/`
    
    * The batch_exec.py can take plenty of options in command line as input, which gives you the flexibility to vary and alternate your parameters
    
@@ -37,7 +37,28 @@ PDB Processing Files
         
         * `1`: process the second strand
         
-        * `2`: process both strand
+        * `number_of_folds * 2`: process **all** strand
+
+    * The `-f` or `--fold` is used for determining how many folds do we want to create from the original file.
+
+        * `1`: One fold (original strands)
+
+        * `2`: Two fold
+
+    * The `-d` or `--inidis` is used for determining how much distance we want to move for each new folds
+
+        * `3`: 3 unit
+
+    * The `-u` or `--angleupper` is the upper bound of rotating angle you want to set for experiment
+
+        * `30`: 30 degrees
+
+    * The `-n` or `--transupper` is the upper bound of translation distance you want to set for experiment
+
+        * `5`: 5 unit
+
+
+    * I suggest you use less than 8 folds because the memory will expand 2 times after you create more folds.
         
     * It will delete and re-generate the legacy output directories at the start of the file for avoiding disk space overflow.
         
@@ -45,13 +66,15 @@ PDB Processing Files
     
     **Usage Command Line Example:**
     
-    `python batch_exec.py -s 2 -t 1 -r 1 -m 0 -a 0`, note that you might want to change `python` to `python3` or `python2` depends on your OS settings.
+    `python2 -OO parallel_exec.py`
+
+    `python2 -OO batch_exec.py -s 2 -t 1 -r 1 -m 0 -a 0 -f 4 -d 3 -u 30 -n 5`, now I locked python interpreter to python2, `-OO` is for compiler optimization.
    
 2. **batch_exec.py:**
 
     This script will execute the main part of this package `myParsePDB.py`. It will take the input from `parallel_exec.py` and then it will pass the options to execute `myParsePDB.py` depends on the options passed in by `parallel_exec.py`. The output files are generated under each separated output directory. Because the generating process is running in loops (lower_bound, upper_bound, stepsize), each output file will contain the info only for that step. So the output file has a format: `<input_file_name>_OUT_Rotate_Angle_<angle>_strand_<strand>.pdb` or `<input_file_name>_OUT_Move_Trans_<translation>_strand_<strand>.pdb`.
     
-    Now, I'll explain how to set the options:
+    Now, I'll explain how to set the options if you want to change the command lines here:
     
     * The `-i` or `--ifile` will take the input file
     
@@ -63,23 +86,29 @@ PDB Processing Files
       
       * `1`: second strand
       
-      * `2`: both strand
+      * `number_of_folds * 2`: all strands
       
-      * `3`: None
+      * `number_of_folds * 2 + 1`: None
     
     * The `-s` or `--step` will specify the exact step value to rotate (not step size), note this `-s` is distinct from the `-s` above.
     
-    * The `-m` or `--movestrand` will specify if the ability to move the strand, so it is the same as `-m` in the section `parallel_exec.py`
+    * The `-m` or `--movestrand` will specify which strand you want to move
     
-      * `0`: disabled
+      * `0`: first strand
       
-      * `1`: enabled
+      * `1`: second strand
+
+      * `number_of_folds * 2`: none
       
     * The `-t` or `--translation` will specify the exact step value to translate along strand axis (notrstep size), note this `-t` is distinct from the `-t` above.
+
+    * The `-f` or `--fold` will specify the number_of_folds we want to create
+
+    * The `-d` or `--inidis` will specify the initial distance that we want to keep between each fold.
     
     **Usage Command Line Example:**
     
-    `python myParsePDB.py -i BP1.pdb -o <out_file> -a 3 -s 2 -m 1 -t 1`
+    `python2 -OO myParsePDB.py -i BP1.pdb -o <out_file> -a 3 -s 2 -m 1 -t 1 -f 4 -d 3`
     
 3. **myParsePDB.py**
 
@@ -91,9 +120,9 @@ PDB Processing Files
     
     * `vector_move(point, dire, dis)`: takes a original data point, moving direction vector, moving distance scalar as parameters and returns a new data point.
     
-    * `rotating_around_strand_axis(strand_op, static_axis, theta, out_coords, in_coords)`: takes strand options, rotating axis (Now I set it to the central axis between two strands), rotating theta, output coordinates and input coordinates as parameters and returns a new output coordinates.
+    * `rotating_around_strand_axis(strand_op, static_axis, theta, out_coords)`: takes strand options, rotating axis (a list of central rotating axis for each fold), rotating theta, and initialized output coordinates as parameters and returns a new output coordinates.
     
-    * `ceiling_to_three_digs(line, new_data)`: Finalize all data lines, and ceiling the coordinates to 3 decimal places
+    * `ceiling_to_three_digs(line, new_data, num_strands)`: Finalize all data lines, and ceiling the coordinates to 3 decimal places
     
     * `output_files_in_format(outlines,outfile)`: Align and adjust data lines returned from `ceiling_to_three_digs(line, new_data)` in *.pdb format.
  
