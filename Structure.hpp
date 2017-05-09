@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 #include <algorithm>
+#include <map>
 
 using namespace std;
 
@@ -13,7 +14,7 @@ typedef struct Coord {
 	int Z;
 } Coord;
 
-/*class unitCell {
+class unitCell {
 
 private:
 	string S1;
@@ -22,24 +23,32 @@ private:
 	vector<Coord> Unit_Coords; 
 public:
 	// Constructor
-	unitCell();
+	unitCell(string S1, string S2, string Mo, vector<Coord> my_Coords);
 	// Destructor
 	~unitCell();
 	// Copy Constructor
 	unitCell(const unitCell &rhs);
 	// Assignment Operator
-	//unitCell &Operator= (const unitCell &rhs);
+	unitCell &operator= (const unitCell &rhs);
 	// Getters
 	string getS1() const;
 	string getS2() const;
 	string getMo() const;
 	vector<Coord> getCoords() const;
 	// Setters
-};*/
+	void setS1(string new_S);
+	void setS2(string new_S);
+	void setMo(string new_Mo);
+	void setCoords(vector<Coord> new_Coords);
+};
 
-/*template <T>
-class Cell : public unitCell {
+/*template <class T>
+class Cells
+{
 
-};*/
+private:
+	vector<T> unitCells;
+public:
+	push
 
-
+}*/

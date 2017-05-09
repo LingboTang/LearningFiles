@@ -12,7 +12,7 @@ STRUCTURE := Structure
 
 # Run
 run: build
-		./$(STRUCTURE) -i structure.out -o new3.xyz
+		./$(STRUCTURE) -i structure.out -o new3.xyz -n molybdinum-disulfide
 
 
 # Build all files
