@@ -1,0 +1,332 @@
+#!/bin/bash
+
+
+Dup_x=2
+Dup_y=2
+xgap=0
+ygap=0
+
+a=`echo "scale=5; sqrt(3)" | bc -l`;
+b=`echo "scale=5; 3" | bc -l`;
+xbox=`echo "scale=5; $a*$Dup_x+$xgap" | bc -l`;
+ybox=`echo "scale=5; $b*$Dup_y+$ygap" | bc -l`;
+zbox=20.1368
+
+# Calculate Number of bonds and Angles
+
+if [ $xgap -eq 0 ]; then
+xsw=1
+else
+xsw=0
+fi
+if [ $ygap -eq 0 ]; then
+ysw=1
+else
+ysw=0
+fi
+
+if [[ $xgap -eq 0 && $ygap -eq 0 ]]; then
+cornersw=1
+else
+cornersw=0
+fi
+
+# For periodic boundary conditions (xgap and ygap = 0) NAngles = 30*dup_x*dup_y and NBonds = 12*Dup_x*Dup_y
+
+NumberOfBonds=`echo "scale=1; -2*$Dup_x-4*$Dup_y+12*$Dup_x*$Dup_y+2*$Dup_x*$ysw+4*$Dup_y*$xsw" | bc -l`;
+
+NumberOfAngles=`echo "scale=1; 7*$Dup_x*$Dup_y+14*($Dup_x-1)*$Dup_y+5*$Dup_x*($Dup_y-1)+4*($Dup_x-1)*($Dup_y-1)+$ysw*($Dup_x*5+($Dup_x-1)*4)+$xsw*($Dup_y*14+($Dup_y-1)*4)+$cornersw*4" | bc -l`;
+
+echo
+echo
+echo "    "$((($Dup_x)*($Dup_y)*6))" atoms"
+echo "    $NumberOfAngles angles"
+echo "    $NumberOfBonds bonds"
+echo
+echo "     2 atom types"
+echo "     3 angle types"
+echo "     1 bond types"
+echo
+echo
+echo "        0.0    $xbox xlo xhi"
+echo "        0.0    $ybox ylo yhi"
+echo "        0.0    $zbox zlo zhi"
+echo
+echo
+echo "    Masses"
+echo
+echo "        1    95.9400"
+echo "        2    32.0660"
+echo
+echo "    Atoms"
+echo
+
+#Atom positions
+
+ID=1
+
+for j in $(seq 0 $((Dup_y-1)))
+	do
+
+	for i in $(seq 0 $((Dup_x-1)))
+		do
+
+	awk 'BEGIN{print '$ID',2,'$a'/2+'$i'*'$a',0.5+'$j'*'$b',1,1,1}' ;let ID++
+	awk 'BEGIN{print '$ID',2,'$a'/2+'$i'*'$a',0.5+'$j'*'$b',2,1,1}' ;let ID++
+	awk 'BEGIN{print '$ID',2,0+'$i'*'$a',2.0+'$j'*'$b',1,1,1}' ;let ID++
+	awk 'BEGIN{print '$ID',2,0+'$i'*'$a',2.0+'$j'*'$b',2,1,1}' ;let ID++
+	awk 'BEGIN{print '$ID',1,0+'$i'*'$a',1.0+'$j'*'$b',1.5,1,1}' ;let ID++
+	awk 'BEGIN{print '$ID',1,'$a'/2+'$i'*'$a',2.5+'$j'*'$b',1.5,1,1}' ;let ID++
+	done
+done
+echo
+echo
+echo "    Bonds"
+echo
+
+ID=1
+
+#Unit Cell inner Bonds
+
+i=0
+for j in $(seq 0 $((Dup_x*Dup_y-1)))
+        do
+
+        awk 'BEGIN{print '$ID',1,1+6*'$i',5+6*'$i',"#CellIn"}' ;let ID++
+        awk 'BEGIN{print '$ID',1,2+6*'$i',5+6*'$i',"#CellIn"}' ;let ID++
+        awk 'BEGIN{print '$ID',1,3+6*'$i',5+6*'$i',"#CellIn"}' ;let ID++
+        awk 'BEGIN{print '$ID',1,4+6*'$i',5+6*'$i',"#CellIn"}' ;let ID++
+        awk 'BEGIN{print '$ID',1,3+6*'$i',6+6*'$i',"#CellIn"}' ;let ID++
+        awk 'BEGIN{print '$ID',1,4+6*'$i',6+6*'$i',"#CellIn"}' ;let ID++
+	let i++
+
+done
+
+#Unit Cell outer Bonds
+
+i=0
+step=0
+for k in $(seq 0 $((Dup_y-1)))
+	do
+	for j in $(seq 0 $((Dup_x-2)))
+        	do
+
+        awk 'BEGIN{print '$ID',1,1+6*'$i'+'$step',11+6*'$i'+'$step',"#CellOutx"}' ;let ID++
+        awk 'BEGIN{print '$ID',1,2+6*'$i'+'$step',11+6*'$i'+'$step',"#CellOutx"}' ;let ID++
+        awk 'BEGIN{print '$ID',1,6+6*'$i'+'$step',9+6*'$i'+'$step',"#CellOutx"}' ;let ID++
+        awk 'BEGIN{print '$ID',1,6+6*'$i'+'$step',10+6*'$i'+'$step',"#CellOutx"}' ;let ID++
+        let i++
+	
+	done
+        let "step = step + 6"
+
+done
+
+
+i=0
+for j in $(seq 0 $(((Dup_y-1)*Dup_x-1)))
+                do
+
+        awk 'BEGIN{print '$ID',1,6+'$i'*6,6*'$Dup_x'+1+'$i'*6,"#CellOuty"}' ;let ID++
+	awk 'BEGIN{print '$ID',1,6+'$i'*6,6*'$Dup_x'+2+'$i'*6,"#CellOuty"}' ;let ID++
+	let i++
+done
+
+# Top/Bottom bonds
+
+if [ $ygap -eq 0 ]; then
+i=0
+	for j in $(seq 0 $((Dup_x-1)))
+                do
+
+        awk 'BEGIN{print '$ID',1,1+'$i'*6,('$Dup_x'*('$Dup_y'-1)*6+6)+'$i'*6,"#TopBot"}' ;let ID++
+    	awk 'BEGIN{print '$ID',1,2+'$i'*6,('$Dup_x'*('$Dup_y'-1)*6+6)+'$i'*6,"#TopBot"}' ;let ID++
+		let i++
+	done
+fi
+
+# Right/Left bonds
+
+if [ $xgap -eq 0 ]; then
+
+	i=0
+	for j in $(seq 0 $((Dup_y-1)))
+                do
+
+        awk 'BEGIN{print '$ID',1,3+'$i'*'$Dup_x'*6,'$Dup_x'*6+'$i'*'$Dup_x'*6,"#RightLeft"}' ;let ID++
+        awk 'BEGIN{print '$ID',1,4+'$i'*'$Dup_x'*6,'$Dup_x'*6+'$i'*'$Dup_x'*6,"#RightLeft"}' ;let ID++
+    	awk 'BEGIN{print '$ID',1,5+'$i'*'$Dup_x'*6,('$Dup_x'*6-5)+'$i'*'$Dup_x'*6,"#RightLeft"}' ;let ID++
+    	awk 'BEGIN{print '$ID',1,5+'$i'*'$Dup_x'*6,('$Dup_x'*6-4)+'$i'*'$Dup_x'*6,"#RightLeft"}' ;let ID++		
+		let i++
+		
+	done
+fi
+
+echo
+echo
+echo "    Angles"
+echo
+
+# Angles A1
+#S-Mo-S type 1 thera (vertical) 
+#S-Mo-S type 2 phi
+#Mo-S-Mo type 3 psi
+
+ID=1
+i=0
+for j in $(seq 0 $((Dup_x*Dup_y-1)))
+        do
+		
+        awk 'BEGIN{print '$ID',1,1+'$i'*6,5+'$i'*6,2+'$i'*6,"#A1_Theta"}' ;let ID++
+        awk 'BEGIN{print '$ID',1,3+'$i'*6,5+'$i'*6,4+'$i'*6,"#A1_Theta"}' ;let ID++
+        awk 'BEGIN{print '$ID',1,3+'$i'*6,6+'$i'*6,4+'$i'*6,"#A1_Theta"}' ;let ID++
+        awk 'BEGIN{print '$ID',2,1+'$i'*6,5+'$i'*6,3+'$i'*6,"#A1_phi"}' ;let ID++
+        awk 'BEGIN{print '$ID',2,2+'$i'*6,5+'$i'*6,4+'$i'*6,"#A1_phi"}' ;let ID++
+        awk 'BEGIN{print '$ID',3,5+'$i'*6,3+'$i'*6,6+'$i'*6,"#A1_psi"}' ;let ID++
+        awk 'BEGIN{print '$ID',3,5+'$i'*6,4+'$i'*6,6+'$i'*6,"#A1_psi"}' ;let ID++
+		let i++
+
+done
+
+# Angles A2
+
+i=0
+step=0
+for k in $(seq 0 $((Dup_y-1)))
+        do
+        for j in $(seq 0 $(((Dup_x-1)-1)))
+                do
+
+        awk 'BEGIN{print '$ID',1,1+'$i'*6+'$step',11+'$i'*6+'$step',2+'$i'*6+'$step',"#A2_theta"}' ;let ID++
+        awk 'BEGIN{print '$ID',1,9+'$i'*6+'$step',6+'$i'*6+'$step',10+'$i'*6+'$step',"#A2_theta"}' ;let ID++
+        awk 'BEGIN{print '$ID',2,1+'$i'*6+'$step',11+'$i'*6+'$step',7+'$i'*6+'$step',"#A2_phi"}' ;let ID++
+        awk 'BEGIN{print '$ID',2,2+'$i'*6+'$step',11+'$i'*6+'$step',8+'$i'*6+'$step',"#A2_phi"}' ;let ID++
+        awk 'BEGIN{print '$ID',2,1+'$i'*6+'$step',11+'$i'*6+'$step',9+'$i'*6+'$step',"#A2_phi"}' ;let ID++
+        awk 'BEGIN{print '$ID',2,2+'$i'*6+'$step',11+'$i'*6+'$step',10+'$i'*6+'$step',"#A2_phi"}' ;let ID++
+        awk 'BEGIN{print '$ID',2,3+'$i'*6+'$step',6+'$i'*6+'$step',9+'$i'*6+'$step',"#A2_phi"}' ;let ID++
+        awk 'BEGIN{print '$ID',2,4+'$i'*6+'$step',6+'$i'*6+'$step',10+'$i'*6+'$step',"#A2_phi"}' ;let ID++
+        awk 'BEGIN{print '$ID',3,5+'$i'*6+'$step',1+'$i'*6+'$step',11+'$i'*6+'$step',"#A2_psi"}' ;let ID++
+        awk 'BEGIN{print '$ID',3,5+'$i'*6+'$step',2+'$i'*6+'$step',12+'$i'*6+'$step',"#A2_psi"}' ;let ID++
+        awk 'BEGIN{print '$ID',3,3+'$i'*6+'$step',6+'$i'*6+'$step',9+'$i'*6+'$step',"#A2_psi"}' ;let ID++
+        awk 'BEGIN{print '$ID',3,4+'$i'*6+'$step',6+'$i'*6+'$step',10+'$i'*6+'$step',"#A2_psi"}' ;let ID++
+        awk 'BEGIN{print '$ID',3,6+'$i'*6+'$step',9+'$i'*6+'$step',12+'$i'*6+'$step',"#A2_psi"}' ;let ID++
+        awk 'BEGIN{print '$ID',3,6+'$i'*6+'$step',10+'$i'*6+'$step',12+'$i'*6+'$step',"#A2_psi"}' ;let ID++	
+	let i++
+
+        done
+        let "step += 6"
+
+done
+
+# Angles B1
+i=0
+for j in $(seq 0 $((Dup_x*(Dup_y-1)-1)))
+        do
+
+        awk 'BEGIN{print '$ID',1,6*'$Dup_x'+1+'$i'*6,6+'$i'*6,6*'$Dup_x'+2+'$i'*6,"#B1_Theta"}' ;let ID++
+        awk 'BEGIN{print '$ID',2,3+'$i'*6,6+'$i'*6,6*'$Dup_x'+1+'$i'*6,"#B1_phi"}' ;let ID++
+        awk 'BEGIN{print '$ID',2,4+'$i'*6,6+'$i'*6,6*'$Dup_x'+2+'$i'*6,"#B1_phi"}' ;let ID++
+        awk 'BEGIN{print '$ID',3,6+'$i'*6,6*'$Dup_x'+1+'$i'*6,6*'$Dup_x'+5+'$i'*6,"#B1_psi"}' ;let ID++
+        awk 'BEGIN{print '$ID',3,6+'$i'*6,6*'$Dup_x'+2+'$i'*6,6*'$Dup_x'+5+'$i'*6,"#B1_psi"}' ;let ID++
+                let i++
+
+done
+
+# Angles B2
+
+i=0
+step=0
+for k in $(seq 0 $(((Dup_y-1)-1)))
+        do
+        for j in $(seq 0 $(((Dup_x-1)-1)))
+                do
+
+        awk 'BEGIN{print '$ID',2,9+'$i'*6+'$step',6+'$i'*6+'$step',6*'$Dup_x'+1+'$i'*6+'$step',"#b2_phi"}' ;let ID++
+        awk 'BEGIN{print '$ID',2,10+'$i'*6+'$step',6+'$i'*6+'$step',6*'$Dup_x'+2+'$i'*6+'$step',"#b2_phi"}' ;let ID++
+        awk 'BEGIN{print '$ID',3,6+'$i'*6+'$step',6*'$Dup_x'+1+'$i'*6+'$step',6*'$Dup_x'+11+'$i'*6+'$step',"#b2_psi"}' ;let ID++
+        awk 'BEGIN{print '$ID',3,6+'$i'*6+'$step',6*'$Dup_x'+2+'$i'*6+'$step',6*'$Dup_x'+11+'$i'*6+'$step',"#b2_psi"}' ;let ID++
+        let i++
+
+        done
+        let "step += 6"
+
+done
+
+# Top/Bottom Angles
+
+if [ $ygap -eq 0 ]; then
+
+i=0
+for j in $(seq 0 $((Dup_x-1)))
+        do
+
+        awk 'BEGIN{print '$ID',1,1+'$i'*6,'$Dup_x'*('$Dup_y'-1)*6+6+'$i'*6,2+'$i'*6,"#TB1_Theta"}' ;let ID++
+        awk 'BEGIN{print '$ID',2,1+'$i'*6,'$Dup_x'*('$Dup_y'-1)*6+6+'$i'*6,'$Dup_x'*('$Dup_y'-1)*6+3+'$i'*6,"#TB1_phi"}' ;let ID++
+        awk 'BEGIN{print '$ID',2,2+'$i'*6,'$Dup_x'*('$Dup_y'-1)*6+6+'$i'*6,'$Dup_x'*('$Dup_y'-1)*6+4+'$i'*6,"#TB1_phi"}' ;let ID++
+        awk 'BEGIN{print '$ID',3,5+'$i'*6,1+'$i'*6,'$Dup_x'*('$Dup_y'-1)*6+6+'$i'*6,"#TB1_psi"}' ;let ID++
+        awk 'BEGIN{print '$ID',3,5+'$i'*6,2+'$i'*6,'$Dup_x'*('$Dup_y'-1)*6+6+'$i'*6,"#TB1_psi"}' ;let ID++
+                let i++
+
+done
+
+i=0
+for j in $(seq 0 $(((Dup_x-1)-1)))
+        do
+
+        awk 'BEGIN{print '$ID',2,1+'$i'*6,'$Dup_x'*('$Dup_y'-1)*6+6+'$i'*6,'$Dup_x'*('$Dup_y'-1)*6+9+'$i'*6,"#TB2_phi"}' ;let ID++
+        awk 'BEGIN{print '$ID',2,2+'$i'*6,'$Dup_x'*('$Dup_y'-1)*6+6+'$i'*6,'$Dup_x'*('$Dup_y'-1)*6+10+'$i'*6,"#TB2_phi"}' ;let ID++
+        awk 'BEGIN{print '$ID',3,11+'$i'*6,1+'$i'*6,'$Dup_x'*('$Dup_y'-1)*6+6+'$i'*6,"#TB2_psi"}' ;let ID++
+        awk 'BEGIN{print '$ID',3,11+'$i'*6,2+'$i'*6,'$Dup_x'*('$Dup_y'-1)*6+6+'$i'*6,"#TB2_psi"}' ;let ID++
+                let i++
+
+done
+fi
+
+# RIght/Left Angles
+
+if [ $xgap -eq 0 ]; then
+
+i=0
+for j in $(seq 0 $((Dup_y-1)))
+        do
+
+        awk 'BEGIN{print '$ID',1,('$Dup_x'-1)*6+1+'$i'*'$Dup_x'*6,5+'$i'*'$Dup_x'*6,('$Dup_x'-1)*6+2+'$i'*'$Dup_x'*6,"#RL1_Theta"}' ;let ID++
+        awk 'BEGIN{print '$ID',1,3+'$i'*'$Dup_x'*6,('$Dup_x'-1)*6+6+'$i'*'$Dup_x'*6,4+'$i'*'$Dup_x'*6,"#RL1_Theta"}' ;let ID++
+        awk 'BEGIN{print '$ID',2,('$Dup_x'-1)*6+1+'$i'*'$Dup_x'*6,5+'$i'*'$Dup_x'*6,1+'$i'*'$Dup_x'*6,"#RL1_phi"}' ;let ID++
+        awk 'BEGIN{print '$ID',2,('$Dup_x'-1)*6+2+'$i'*'$Dup_x'*6,5+'$i'*'$Dup_x'*6,2+'$i'*'$Dup_x'*6,"#RL1_phi"}' ;let ID++
+        awk 'BEGIN{print '$ID',2,('$Dup_x'-1)*6+1+'$i'*'$Dup_x'*6,5+'$i'*'$Dup_x'*6,3+'$i'*'$Dup_x'*6,"#RL1_phi"}' ;let ID++
+        awk 'BEGIN{print '$ID',2,('$Dup_x'-1)*6+2+'$i'*'$Dup_x'*6,5+'$i'*'$Dup_x'*6,4+'$i'*'$Dup_x'*6,"#RL1_phi"}' ;let ID++
+        awk 'BEGIN{print '$ID',2,('$Dup_x'-1)*6+3+'$i'*'$Dup_x'*6,('$Dup_x'-1)*6+6+'$i'*'$Dup_x'*6,3+'$i'*'$Dup_x'*6,"#RL1_phi"}' ;let ID++
+        awk 'BEGIN{print '$ID',2,('$Dup_x'-1)*6+4+'$i'*'$Dup_x'*6,('$Dup_x'-1)*6+6+'$i'*'$Dup_x'*6,4+'$i'*'$Dup_x'*6,"#RL1_phi"}' ;let ID++
+        awk 'BEGIN{print '$ID',3,('$Dup_x'-1)*6+5+'$i'*'$Dup_x'*6,('$Dup_x'-1)*6+1+'$i'*'$Dup_x'*6,5+'$i'*'$Dup_x'*6,"#RL1_psi"}' ;let ID++
+        awk 'BEGIN{print '$ID',3,('$Dup_x'-1)*6+5+'$i'*'$Dup_x'*6,('$Dup_x'-1)*6+2+'$i'*'$Dup_x'*6,5+'$i'*'$Dup_x'*6,"#RL1_psi"}' ;let ID++
+        awk 'BEGIN{print '$ID',3,('$Dup_x'-1)*6+6+'$i'*'$Dup_x'*6,3+'$i'*'$Dup_x'*6,6+'$i'*'$Dup_x'*6,"#RL1_psi"}' ;let ID++
+        awk 'BEGIN{print '$ID',3,('$Dup_x'-1)*6+6+'$i'*'$Dup_x'*6,4+'$i'*'$Dup_x'*6,6+'$i'*'$Dup_x'*6,"#RL1_psi"}' ;let ID++
+        awk 'BEGIN{print '$ID',3,('$Dup_x'-1)*6+6+'$i'*'$Dup_x'*6,3+'$i'*'$Dup_x'*6,5+'$i'*'$Dup_x'*6,"#RL1_psi"}' ;let ID++
+        awk 'BEGIN{print '$ID',3,('$Dup_x'-1)*6+6+'$i'*'$Dup_x'*6,4+'$i'*'$Dup_x'*6,5+'$i'*'$Dup_x'*6,"#RL1_psi"}' ;let ID++             let i++
+
+done
+
+i=0
+for j in $(seq 0 $(((Dup_y-1)-1)))
+        do
+
+awk 'BEGIN{print '$ID',2,3+'$i'*'$Dup_x'*6,('$Dup_x'-1)*6+6+'$i'*'$Dup_x'*6,('$Dup_x'-1)*6+1+'$i'*'$Dup_x'*6+'$Dup_x'*6,"#RL2_phi"}' ;let ID++
+awk 'BEGIN{print '$ID',2,4+'$i'*'$Dup_x'*6,('$Dup_x'-1)*6+6+'$i'*'$Dup_x'*6,('$Dup_x'-1)*6+2+'$i'*'$Dup_x'*6+'$Dup_x'*6,"#RL2_phi"}' ;let ID++
+awk 'BEGIN{print '$ID',3,('$Dup_x'-1)*6+6+'$i'*'$Dup_x'*6,('$Dup_x'-1)*6+1+'$i'*'$Dup_x'*6+'$Dup_x'*6,5+'$i'*'$Dup_x'*6+'$Dup_x'*6,"#RL2_psi"}' ;let ID++
+awk 'BEGIN{print '$ID',3,('$Dup_x'-1)*6+6+'$i'*'$Dup_x'*6,('$Dup_x'-1)*6+2+'$i'*'$Dup_x'*6+'$Dup_x'*6,5+'$i'*'$Dup_x'*6+'$Dup_x'*6,"#RL2_psi"}' ;let ID++
+	let i++
+done
+
+fi
+
+# Corners
+
+if [[ $xgap -eq 0 && $ygap -eq 0 ]]; then
+
+awk 'BEGIN{print '$ID',2,5,('$Dup_x'-1)*6+1,'$Dup_x'*'$Dup_y'*6,"#Corner_phi"}';let ID++
+awk 'BEGIN{print '$ID',2,5,('$Dup_x'-1)*6+2,'$Dup_x'*'$Dup_y'*6,"#Corner_phi"}';let ID++
+awk 'BEGIN{print '$ID',3,('$Dup_x'-1)*6+1,'$Dup_x'*'$Dup_y'*6,3+'$Dup_x'*('$Dup_y'-1)*6,"#Corner_psi"}';let ID++
+awk 'BEGIN{print '$ID',3,('$Dup_x'-1)*6+2,'$Dup_x'*'$Dup_y'*6,4+'$Dup_x'*('$Dup_y'-1)*6,"#Corner_psi"}';let ID++
+
+fi

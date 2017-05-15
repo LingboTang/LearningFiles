@@ -1,0 +1,89 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Template for a LaTex article in English.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\documentclass{article}
+
+% AMS packages:
+\usepackage{amsmath, amsthm, amsfonts}
+
+% Theorems
+%-----------------------------------------------------------------
+\newtheorem{thm}{Theorem}[section]
+\newtheorem{cor}[thm]{Corollary}
+\newtheorem{lem}[thm]{Lemma}
+\newtheorem{prop}[thm]{Proposition}
+\theoremstyle{definition}
+\newtheorem{defn}[thm]{Definition}
+\theoremstyle{remark}
+\newtheorem{rem}[thm]{Remark}
+
+% Shortcuts.
+% One can define new commands to shorten frequently used
+% constructions. As an example, this defines the R and Z used
+% for the real and integer numbers.
+%-----------------------------------------------------------------
+\def\RR{\mathbb{R}}
+\def\ZZ{\mathbb{Z}}
+
+% Similarly, one can define commands that take arguments. In this
+% example we define a command for the absolute value.
+% -----------------------------------------------------------------
+\newcommand{\abs}[1]{\left\vert#1\right\vert}
+
+% Operators
+% New operators must defined as such to have them typeset
+% correctly. As an example we define the Jacobian:
+% -----------------------------------------------------------------
+\DeclareMathOperator{\Jac}{Jac}
+
+%-----------------------------------------------------------------
+\title{Implementing Jarzynski Equality in Python}
+\author{Lingbo Tang\\
+  \small Dept. Computing Science\\
+  \small University of Alberta\\
+  \small Canada
+}
+
+\begin{document}
+\maketitle
+
+\abstract{Jarsynski Equality is a neat equality that reveals that the system Free Energy could be calculated even when the system is not in equilibrium state.}
+
+\section{Introduction}
+
+In general, the Jarzynski Equality could look like this:
+
+\begin{equation}\label{eq:general}
+  \Delta F = F(\lambda_{t}) - F(\lambda_{0}) <= < W >
+\end{equation}
+
+and the integration form looks like:
+
+\begin{equation}\label{eq:integration}
+  W_{0\rightarrow t} = \int_{0}^{t} dt^{'} \frac{\partial \lambda_t^{'}}{\partial t^{'}} [\frac{\partial \tilde{H} (r, p; \lambda)}{\partial \lambda} ]_{(r,p; \lambda)} = (r_{t^{'}}, p_{t^{'}} ; \lambda_{t^{'}})
+\end{equation}
+
+One can refer to equations like this: see equation (\ref{eq:general}). One can also
+refer to sections in the same way: see section \ref{sec:nothing}. Or
+to the bibliography like this: \cite{Cd94}.
+
+\subsection{Subsection}\label{sec:nothing}
+
+More text.
+
+\subsubsection{Subsubsection}\label{sec:nothing2}
+
+More text.
+
+% Bibliography
+%-----------------------------------------------------------------
+\begin{thebibliography}{99}
+
+\bibitem{Cd94} Author, \emph{Title}, Journal/Editor, (year)
+
+\end{thebibliography}
+
+\end{document}
