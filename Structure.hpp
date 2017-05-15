@@ -42,13 +42,17 @@ public:
 	void setCoords(vector<Coord> new_Coords);
 };
 
-/*template <class T>
+template <class T>
 class Cells
 {
 
 private:
 	vector<T> unitCells;
 public:
-	push
+	void push(T const&);
+	void pop();
+	T top();
+	bool empty();
+	//string toString();
 
-}*/
+};

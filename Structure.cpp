@@ -68,6 +68,34 @@ void unitCell::setCoords(vector<Coord> new_Coords) {
 	this-> Unit_Coords = new_Coords;
 }
 
+template <class T>
+void Cells<T>::push(T const & unitCell) {
+	this->unitCells.push_back(unitCell);
+}
+
+template <class T>
+void Cells<T>::pop() {
+	if (this->unitCells.empty()) {
+
+	} else {
+		this->unitCells.pop_back();
+	}
+}
+
+template <class T>
+T Cells<T>::top() {
+	if (this->unitCells.empty()) {
+
+	} else {
+		return this->unitCells.back();
+	}
+}
+
+template <class T>
+bool Cells<T>::empty() {
+	return this->unitCells.empty();
+}
+
 int main(int argc, char ** argv) {
 	int opt;
 	string in_f_name;
