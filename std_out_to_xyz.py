@@ -45,7 +45,6 @@ def main(argv):
 			data.append(line.strip().split())
 
 	del data[data.index(["Bonds"]): ]
-	print(data)
 	for my_line in data:
 		if "atoms" in my_line:
 			output_file.write(my_line[0] + "\n")

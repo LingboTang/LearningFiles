@@ -45,9 +45,9 @@ def seq_incre(i):
 
 def main(argv):
 
-	dup_x = 1
-	dup_y = 1
-	dup_z = 0
+	dup_x = 2
+	dup_y = 2
+	dup_z = 2
 	x_gap = 0
 	y_gap = 0
 	z_gap = 0
@@ -77,6 +77,7 @@ def main(argv):
 
 	a = np.sqrt(3)
 	b = 3
+	c = 2
 	x_box = a*dup_x + x_gap
 	y_box = b*dup_y + y_gap
 	z_box = 20.1368
@@ -90,7 +91,7 @@ def main(argv):
 	Number_Of_Angles = 7*dup_x*dup_y +14*(dup_x-1)*dup_y +5*dup_x*(dup_y-1) +4*(dup_x-1)*(dup_y-1) +y_sw*(dup_x*5+(dup_x-1)*4) +x_sw*(dup_y*14+(dup_y-1)*4) +corner_sw*4
 
 
-	print(str(dup_x*dup_y*6) + " " + "atoms") 
+	print(str(dup_x*dup_y*dup_z*6) + " " + "atoms") 
 	print("%d angles"%Number_Of_Angles)
 	print("%d bonds"%Number_Of_Bonds)
 	print("2 atom types")
@@ -105,14 +106,15 @@ def main(argv):
 	print("Atoms")
 
 	ID = idSeq(0)
-	for j in range(dup_y):
-		for i in range(dup_x):
-			print(str(ID.incre()) +" 2 " + str(a/2 + i*a) +" "+ str(0.5 + j*b) + " 1 "+ " 1 "+ " 1 ") 
-			print(str(ID.incre()) +" 2 " + str(a/2 + i*a) +" "+ str(0.5 + j*b) + " 2 "+ " 1 "+ " 1 ")
-			print(str(ID.incre()) +" 2 " + str(0 + i*a) +" "+ str(2.0 + j*b) + " 1 "+ " 1 "+ " 1 ")
-			print(str(ID.incre()) +" 2 " + str(0 + i*a) +" "+ str(2.0 + j*b) + " 2 "+ " 1 "+ " 1 ")
-			print(str(ID.incre()) +" 1 " + str(0 + i*a) +" "+ str(1.0 + j*b) + " 1.5 "+ " 1 "+ " 1 ")
-			print(str(ID.incre()) +" 1 " + str(a/2 + i*a) +" "+ str(2.5 + j*b) + " 1.5 "+ " 1 "+ " 1 ")
+	for k in range(dup_z):
+		for j in range(dup_y):
+			for i in range(dup_x):
+				print(str(ID.incre()) +" 2 " + str(a/2 + i*a) +" "+ str(0.5 + j*b) + " "+ str(1+k*c) + " 1 "+ " 1 ") 
+				print(str(ID.incre()) +" 2 " + str(a/2 + i*a) +" "+ str(0.5 + j*b) + " "+ str(2+k*c) + " 1 "+ " 1 ")
+				print(str(ID.incre()) +" 2 " + str(0 + i*a) +" "+ str(2.0 + j*b) + " " + str(1+k*c) + " 1 "+ " 1 ")
+				print(str(ID.incre()) +" 2 " + str(0 + i*a) +" "+ str(2.0 + j*b) + " " + str(2+k*c) + " 1 "+ " 1 ")
+				print(str(ID.incre()) +" 1 " + str(0 + i*a) +" "+ str(1.0 + j*b) + " " + str(1.5+k*c)+ " 1 "+ " 1 ")
+				print(str(ID.incre()) +" 1 " + str(a/2 + i*a) +" "+ str(2.5 + j*b) + " "+ str(1.5+k*c) + " 1 "+ " 1 ")
 
 	print("Bonds")
 
